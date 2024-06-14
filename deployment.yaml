@@ -1,0 +1,64 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: bamoe
+  name: dummy-service-now
+  annotations: {}
+spec:
+  selector:
+    matchLabels:
+      app: dummy-service-now
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: dummy-service-now
+    spec:
+      containers:
+        - name: dummy-service-now
+          image: 'de.icr.io/ibamoe/dummy-service-now:latest'
+          ports:
+            - containerPort: 3000
+              protocol: TCP
+              name: tcp
+          env: []
+      imagePullSecrets:
+        - name: all-icr-io
+      imagePullPolicy: Always
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: dummy-service-now
+  name: dummy-service-now
+  namespace: bamoe
+spec:
+  type: ClusterIP
+  ports:
+  - name: tcp
+    port: 3000
+  selector:
+    app: dummy-service-now
+
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  labels:
+    app: dummy-service-now
+  name: dummy-service-now
+  namespace: bamoe
+spec:
+  host: dummy-service-now-bamoe.cp4bautomation-685c4d909dba5536870f4da931535b5a-0000.eu-de.containers.appdomain.cloud
+  port:
+    targetPort: tcp
+  tls:
+    termination: edge
+  to:
+    kind: Service
+    name: dummy-service-now
+    weight: 100
+  wildcardPolicy: None                                              
